@@ -28,27 +28,26 @@ for i = 1:numel(imgs)
     P_ref = hdrread( ref_path );
     P_pred = hdrread( pred_path );
     
-    % Make the image smaller so that we can fit more on the screen
-    P_ref = max( imresize( P_ref, 0.5, 'lanczos2' ), 0.0001 );
-    P_pred = max( imresize( P_pred, 0.5, 'lanczos2' ), 0.0001 );
-
-    %PSNR_me = pu21_metric( P_pred, P_ref, 'PSNR', min(P_ref(:)), max(P_ref(:)));
-    %SSIM_me = pu21_metric( P_pred, P_ref, 'SSIM', min(P_ref(:)), max(P_ref(:)));
-    %I_ref = pu21.encode( P_ref , min(P_ref(:)), max(P_ref(:)));
-    %I_pred = pu21.encode( P_pred , min(P_ref(:)),max(P_ref(:)));
+    % my way
+    PSNR_me = pu21_metric( P_pred, P_ref, 'PSNR', min(P_ref(:)), max(P_ref(:)));
+    SSIM_me = pu21_metric( P_pred, P_ref, 'SSIM', min(P_ref(:)), max(P_ref(:)));
     
-    P_ref = P_ref/max(P_ref(:)) * 10000;
-    P_pred = P_pred/max(P_ref(:)) * 10000;
-    PSNR_me = pu21_metric( P_pred, P_ref, 'PSNR', 0, 10000);
-    SSIM_me = pu21_metric( P_pred, P_ref, 'SSIM', 0, 10000);
-    I_ref = pu21.encode( P_ref , 0, 10000);
-    I_pred = pu21.encode( P_pred , 0, 10000);
-
+    % singleHDR way
+    I_pred = pre_hdr_p3(P_pred);
+    I_ref = pre_hdr_p3(P_ref);
+    
+    % original way
+    %P_ref = P_ref/max(P_ref(:)) * 10000;
+    %P_pred = P_pred/max(P_ref(:)) * 10000;
+    %PSNR_me = pu21_metric( P_pred, P_ref, 'PSNR', 0, 10000);
+    %SSIM_me = pu21_metric( P_pred, P_ref, 'SSIM', 0, 10000);
+    
     % Find the angular resolution in pixels per visual degree:
     % 30" 4K monitor seen from 0.5 meters
-    ppd = hdrvdp_pix_per_deg( 30, [3840 2160], 0.5 );
+    %ppd = hdrvdp_pix_per_deg( 30, [3840 2160], 0.5 );
     
-    res_pred = hdrvdp( I_pred, I_ref, 'rgb-native', ppd, {} );
+    %res_pred = hdrvdp( I_pred, I_ref, 'rgb-native', ppd, {} );
+    res_pred = hdrvdp( I_pred, I_ref, 'rgb-bt.709', 30 );
     
     % context image to show in the visualization
     %I_context = get_luminance( I_ref );
@@ -77,7 +76,7 @@ for i = 1:numel(imgs)
     %title( 'Detection of pred' );
     
     txt = sprintf('PSNR = %g dB,   SSIM = %g,   Qscore = %g\n', PSNR_me, SSIM_me, res_pred.Q);
-    %disp(txt);
+    disp(txt);
     %text(-30,45,txt);
     
     psnr(end+1) = PSNR_me;
@@ -91,6 +90,7 @@ for i = 1:numel(imgs)
 end
 
 res = sprintf('[MEAN] PSNR = %g dB,   SSIM = %g,   Qscore = %g\n', mean(psnr), mean(ssim), mean(qscore));
+disp(res);
 %mean_psnr = length(pnsr);
 
 figure
@@ -105,3 +105,18 @@ title( 'SSIM' );
 subplot(1,3,3);
 boxplot(qscore);
 title( 'Q Score' );
+
+% Reference: https://github.com/alex04072000/SingleHDR/issues/4
+function hdr = pre_hdr_p3(hdr)
+    eps = 1e-8;
+    s = size(hdr(:), 1);
+    k = int64(s*1e-3);
+    a = mink(hdr(:), k);
+    a = a(end);
+    b = maxk(hdr(:), k);
+    b = b(end);
+    c = 1.0;
+    d = 999.0;
+    hdr = (hdr - a).*(d - c)./(b - a + eps) + c;
+    hdr(hdr < 0) = 0;
+end

@@ -68,10 +68,10 @@ classdef pu21_encoder
             % Y is in the range from 0.005 to 10000. The values MUST be
             %   scaled in the absolute units (nits, cd/m^2).
             
-            epsilon = 1e-5;
-            if any(Y(:)<(obj.L_min-epsilon)) || any(Y(:)>(obj.L_max+epsilon))
-                warning( 'Values passed to encode are outside the valid range' );
-            end
+            %epsilon = 1e-5;
+            %if any(Y(:)<(obj.L_min-epsilon)) || any(Y(:)>(obj.L_max+epsilon))
+            %    warning( 'Values passed to encode are outside the valid range' );
+            %end
             
             Y = min(max(Y, L_min), L_max); % Clamp the values
             p = obj.par;
