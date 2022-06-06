@@ -6,8 +6,8 @@
 % absolute photometric units and parts of the image are much darker than
 % shown in tone-mapped images, making distortions less visible.
 
-imgs = dir('./img/HDR-Real-pred/*.hdr');
-refimgs = dir('./img/HDR-Real-gt/*.hdr');
+imgs = dir('./img/laval_hdr_mantiuk/*.hdr');
+refimgs = dir('./img/val_hdrs/*.hdr');
 
 if ~exist( 'hdrvdp3', 'file' )
         addpath( fullfile( pwd, '..') );
@@ -20,8 +20,8 @@ ssim = [];
 qscore = [];
 
 for i = 1:numel(imgs)
-    ref_path= append("./img/HDR-Real-gt/", refimgs(i).name);
-    pred_path = append("./img/HDR-Real-pred/", imgs(i).name);
+    ref_path= append("./img/val_hdrs/", refimgs(i).name);
+    pred_path = append("./img/laval_hdr_mantiuk/", imgs(i).name);
     disp(ref_path)
     disp(pred_path)
     
@@ -89,7 +89,11 @@ for i = 1:numel(imgs)
 
 end
 
-res = sprintf('[MEAN] PSNR = %g dB,   SSIM = %g,   Qscore = %g\n', mean(psnr), mean(ssim), mean(qscore));
+psnr_clean  =  psnr(~isinf(psnr));
+ssim_clean  =  ssim(~isinf(ssim));
+qscore_clean  =  qscore(~isinf(qscore));
+res = sprintf('[MEAN] PSNR = %g dB,   SSIM = %g,   Qscore = %g\n', mean(psnr_clean,'omitnan'), mean(ssim,'omitnan'), mean(qscore,'omitnan'));
+
 disp(res);
 %mean_psnr = length(pnsr);
 
