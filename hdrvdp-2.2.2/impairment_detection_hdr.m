@@ -6,7 +6,7 @@
 % absolute photometric units and parts of the image are much darker than
 % shown in tone-mapped images, making distortions less visible.
 
-imgs = dir('./img/laval_hdr_mantiuk/*.hdr');
+imgs = dir('./img/laval_hdr_reinhard_proposal/*.hdr');
 refimgs = dir('./img/val_hdrs/*.hdr');
 
 if ~exist( 'hdrvdp3', 'file' )
@@ -21,7 +21,7 @@ qscore = [];
 
 for i = 1:numel(imgs)
     ref_path= append("./img/val_hdrs/", refimgs(i).name);
-    pred_path = append("./img/laval_hdr_mantiuk/", imgs(i).name);
+    pred_path = append("./img/laval_hdr_reinhard_proposal/", imgs(i).name);
     disp(ref_path)
     disp(pred_path)
     
@@ -33,8 +33,11 @@ for i = 1:numel(imgs)
     SSIM_me = pu21_metric( P_pred, P_ref, 'SSIM', min(P_ref(:)), max(P_ref(:)));
     
     % singleHDR way
-    I_pred = pre_hdr_p3(P_pred);
-    I_ref = pre_hdr_p3(P_ref);
+    %I_pred = pre_hdr_p3(P_pred);
+    %I_ref = pre_hdr_p3(P_ref);
+    I_pred = P_pred;
+    I_ref = P_ref;
+    
     
     % original way
     %P_ref = P_ref/max(P_ref(:)) * 10000;
@@ -93,8 +96,10 @@ psnr_clean  =  psnr(~isinf(psnr));
 ssim_clean  =  ssim(~isinf(ssim));
 qscore_clean  =  qscore(~isinf(qscore));
 res = sprintf('[MEAN] PSNR = %g dB,   SSIM = %g,   Qscore = %g\n', mean(psnr_clean,'omitnan'), mean(ssim,'omitnan'), mean(qscore,'omitnan'));
+res2 = sprintf('[MEDIAN] PSNR = %g dB,   SSIM = %g,   Qscore = %g\n', median(psnr_clean,'omitnan'), median(ssim,'omitnan'), median(qscore,'omitnan'));
 
 disp(res);
+disp(res2);
 %mean_psnr = length(pnsr);
 
 figure
